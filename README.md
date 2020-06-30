@@ -1,2 +1,2 @@
 # CWRUBC-Project01
-First Project - Compare Ebay and Amazon offerings
+First Project - Browse Ebay and cross reference against Kelly Blue Book information
