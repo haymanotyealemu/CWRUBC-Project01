@@ -1,2 +1,2 @@
 # CWRUBC-Project01
-First Project - Browse Ebay and cross reference against Kelly Blue Book information
+First Project - User speech is recorded, transcribed, and translated
