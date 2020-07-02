@@ -15,13 +15,40 @@ $(document).ready(function() {
   //new audio context to help us record 
 
 /* Simple constraints object, for more advanced audio features see
-  https://addpipe.com/blog/audio-constraints-getusermedia/ */
+ * https://addpipe.com/blog/audio-constraints-getusermedia/
+ */
   var constraints = {
     audio: true,
     video: false
   } 
 
-  $("#begRecordWav").on.("click", function(event) {
+  function createDownloadLink(blob) {
+    
+    //name of .wav file to use during upload and download (without extendion)
+    var filename = 'statement';
+    saveAs(blob,filename+".wav");
+
+    /* {{{ **
+    ** //upload link
+    ** var upload = document.createElement('a');
+    ** upload.href="#";
+    ** upload.innerHTML = "Upload";
+    ** upload.addEventListener("click", function(event){
+    **     var xhr=new XMLHttpRequest();
+    **     xhr.onload=function(e) {
+    **         if(this.readyState === 4) {
+    **             console.log("Server returned: ",e.target.responseText);
+    **         }
+    **     };
+    **     var fd=new FormData();
+    **     fd.append("audio_data",blob, filename);
+    **     xhr.open("POST","upload.php",true);
+    **     xhr.send(fd);
+    ** })
+    ** }}} */
+  }
+
+  $("#begRecordWav").on("click", function(event) {
     navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
       console.log("getUserMedia() success, stream created, initializing Recorder.js ..."); 
       /* assign to gumStream for later use */
@@ -32,7 +59,7 @@ $(document).ready(function() {
        * (1 channel) Recording 2 channels will double the file size
        */
       rec = new Recorder(input, {
-          numChannels: 2
+        numChannels: 2
       }); 
       //start the recording process 
       rec.record();
@@ -42,6 +69,14 @@ $(document).ready(function() {
     });
   });
 
-  $("#endRecordWav").on.("click", function(event) {
+  $("#endRecordWav").on("click", function(event) {
+    rec.stop();
+
+    //stop microphone access
+    gumStream.getAudioTracks()[0].stop();
+
+    //create the wav blob and pass it on to createDownloadLink
+    rec.exportWAV(createDownloadLink);
   });
+
 });
