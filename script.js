@@ -1,5 +1,8 @@
 $(document).ready(function() {
 
+  var GoogleCloudSpeechToTextAPIKey = "AIzaSyCfh3JoXvDKFCwc3Wud0i8kUJdPaXpJJ4s";
+  var GoogleTranslationAPIKey = "AIzaSyBKTUVOk5a2Ud1rXCbkf8YAXDbaPzY5pyA";
+
   //Example Demo as reference found:
   //https://blog.addpipe.com/using-recorder-js-to-capture-wav-audio-in-your-html5-web-site/
   //
@@ -13,7 +16,8 @@ $(document).ready(function() {
   var AudioContext = window.AudioContext || window.webkitAudioContext;
   var audioContext = new AudioContext;
   //new audio context to help us record 
-
+  navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+  window.URL = window.URL || window.webkitURL;
 /* Simple constraints object, for more advanced audio features see
  * https://addpipe.com/blog/audio-constraints-getusermedia/
  */
@@ -24,9 +28,13 @@ $(document).ready(function() {
 
   function createDownloadLink(blob) {
     
-    //name of .wav file to use during upload and download (without extendion)
-    var filename = 'statement';
-    saveAs(blob,filename+".wav");
+    //name of .wav file to use during upload and download (without extension)
+    /* {{{ **
+    ** var filename = 'statement';
+    ** saveAs(blob,filename+".wav");
+    ** }}} */
+    Recorder.forceDownload(blob);
+    rec.clear();
 
     /* {{{ **
     ** //upload link
