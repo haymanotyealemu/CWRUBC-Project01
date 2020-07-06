@@ -33,8 +33,10 @@ $(document).ready(function() {
     ** var filename = 'statement';
     ** saveAs(blob,filename+".wav");
     ** }}} */
-    Recorder.forceDownload(blob);
-    rec.clear();
+    /* {{{ **
+    ** Recorder.forceDownload(blob);
+    ** rec.clear();
+    ** }}} */
 
     /* {{{ **
     ** //upload link
@@ -59,15 +61,14 @@ $(document).ready(function() {
   $("#begRecordWav").on("click", function(event) {
     navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
       console.log("getUserMedia() success, stream created, initializing Recorder.js ..."); 
-      /* assign to gumStream for later use */
+      // assign to gumStream for later use
       gumStream = stream;
-      /* use the stream */
+      // use the stream
       input = audioContext.createMediaStreamSource(stream);
-      /* Create the Recorder object and configure to record mono sound
-       * (1 channel) Recording 2 channels will double the file size
-       */
+      // Create the Recorder object and configure to record mono sound
+      // (1 channel) Recording 2 channels will double the file size
       rec = new Recorder(input, {
-        numChannels: 2
+        numChannels: 1
       }); 
       //start the recording process 
       rec.record();
@@ -79,12 +80,57 @@ $(document).ready(function() {
 
   $("#endRecordWav").on("click", function(event) {
     rec.stop();
+    console.log("Recording stopped");
 
     //stop microphone access
     gumStream.getAudioTracks()[0].stop();
 
     //create the wav blob and pass it on to createDownloadLink
-    rec.exportWAV(createDownloadLink);
+    /* {{{ **
+    ** rec.exportWAV(createDownloadLink);
+    ** }}} */
+    rec.exportWAV(passToSpeechToTextAPI);
   });
+
+  function passToSpeechToTextAPI(blob) {
+    // Base64 encoded data without header goes in content
+    var Speech = {
+      audio: {
+        content: ""
+      },
+      config: {
+        encoding: "LINEAR16",
+        sampleRateHertz: "16000",
+        languageCode: "en-US"
+      }
+    };
+    // Need file reader object to perform Base64 encoding as a wrapper object
+    // to handle Base64 encoding for the API call.
+    var ToB64Reader = new FileReader();
+    ToB64Reader.onload = function() {
+      // Since the file reader object adds an extra Data URI as a header
+      // chop this information off with a regular expression search/replace
+      // and make the actual API call with that version
+      Speech.content = ToB64Reader.result.replace(/^data:.+;base64,/, '');
+      console.log("Speech.content="+Speech.content); // Encoded data
+      // Use jQuery .param to build the Google Cloud speech to text query URL
+      var queryObj = {
+        appid: "38d1fde83d765552ca766073dba8a36d"
+      };
+      var queryURL = "https://speech.googleapis.com/v1/speech:recognize?key=$";
+      queryURL += $.param(queryObj);
+      //console.log("queryURL="+queryURL);
+      $.ajax({
+        url: queryURL,
+        method: "POST",
+        data: Speech
+      }).then(function(response) {
+        $("#textReply").html(response.results.alternatives[0].transcript);
+      });
+    }
+    // Now need to call readDataAsURL() to trigger the load event, which
+    // will do all the actual work.
+    ToB64Reader.readAsDataURL(blob);
+  }
 
 });
