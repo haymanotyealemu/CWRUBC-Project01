@@ -18,45 +18,12 @@ $(document).ready(function() {
   //new audio context to help us record 
   navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
   window.URL = window.URL || window.webkitURL;
-/* Simple constraints object, for more advanced audio features see
- * https://addpipe.com/blog/audio-constraints-getusermedia/
- */
+  // Simple constraints object, for more advanced audio features see
+  // https://addpipe.com/blog/audio-constraints-getusermedia/
   var constraints = {
     audio: true,
     video: false
   } 
-
-  function createDownloadLink(blob) {
-    
-    //name of .wav file to use during upload and download (without extension)
-    /* {{{ **
-    ** var filename = 'statement';
-    ** saveAs(blob,filename+".wav");
-    ** }}} */
-    /* {{{ **
-    ** Recorder.forceDownload(blob);
-    ** rec.clear();
-    ** }}} */
-
-    /* {{{ **
-    ** //upload link
-    ** var upload = document.createElement('a');
-    ** upload.href="#";
-    ** upload.innerHTML = "Upload";
-    ** upload.addEventListener("click", function(event){
-    **     var xhr=new XMLHttpRequest();
-    **     xhr.onload=function(e) {
-    **         if(this.readyState === 4) {
-    **             console.log("Server returned: ",e.target.responseText);
-    **         }
-    **     };
-    **     var fd=new FormData();
-    **     fd.append("audio_data",blob, filename);
-    **     xhr.open("POST","upload.php",true);
-    **     xhr.send(fd);
-    ** })
-    ** }}} */
-  }
 
   $("#begRecordWav").on("click", function(event) {
     navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
@@ -86,9 +53,6 @@ $(document).ready(function() {
     gumStream.getAudioTracks()[0].stop();
 
     //create the wav blob and pass it on to createDownloadLink
-    /* {{{ **
-    ** rec.exportWAV(createDownloadLink);
-    ** }}} */
     rec.exportWAV(passToSpeechToTextAPI);
   });
 
@@ -115,9 +79,9 @@ $(document).ready(function() {
       console.log("Speech.content="+Speech.content); // Encoded data
       // Use jQuery .param to build the Google Cloud speech to text query URL
       var queryObj = {
-        appid: "38d1fde83d765552ca766073dba8a36d"
+        key: GoogleCloudSpeechToTextAPIKey
       };
-      var queryURL = "https://speech.googleapis.com/v1/speech:recognize?key=$";
+      var queryURL = "https://speech.googleapis.com/v1/speech:recognize?";
       queryURL += $.param(queryObj);
       //console.log("queryURL="+queryURL);
       $.ajax({
