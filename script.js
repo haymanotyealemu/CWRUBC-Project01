@@ -1,6 +1,7 @@
 $(document).ready(function() {
 
-  var GoogleCloudSpeechToTextAPIKey = "AIzaSyCfh3JoXvDKFCwc3Wud0i8kUJdPaXpJJ4s";
+  //var GoogleCloudSpeechToTextAPIKey = "AIzaSyCfh3JoXvDKFCwc3Wud0i8kUJdPaXpJJ4s";
+  var GoogleCloudSpeechToTextAPIKey = "AIzaSyDeuhX7sntzkbREuJ2ZTZoeh8JriCXydJc";
   var GoogleTranslationAPIKey = "AIzaSyBKTUVOk5a2Ud1rXCbkf8YAXDbaPzY5pyA";
 
   //Example Demo as reference found:
@@ -35,7 +36,7 @@ $(document).ready(function() {
       // Create the Recorder object and configure to record mono sound
       // (1 channel) Recording 2 channels will double the file size
       rec = new Recorder(input, {
-        numChannels: 1
+        numChannels: 2
       }); 
       //start the recording process 
       rec.record();
@@ -59,13 +60,13 @@ $(document).ready(function() {
   function passToSpeechToTextAPI(blob) {
     // Base64 encoded data without header goes in content
     var Speech = {
-      audio: {
-        content: ""
-      },
       config: {
         encoding: "LINEAR16",
         sampleRateHertz: "16000",
         languageCode: "en-US"
+      },
+      audio: {
+        content: ""
       }
     };
     // Need file reader object to perform Base64 encoding as a wrapper object
@@ -75,7 +76,7 @@ $(document).ready(function() {
       // Since the file reader object adds an extra Data URI as a header
       // chop this information off with a regular expression search/replace
       // and make the actual API call with that version
-      Speech.content = ToB64Reader.result.replace(/^data:.+;base64,/, '');
+      Speech.audio.content = ToB64Reader.result.replace(/^data:.+;base64,/, '');
       console.log("Speech.content="+Speech.content); // Encoded data
       // Use jQuery .param to build the Google Cloud speech to text query URL
       var queryObj = {
@@ -83,11 +84,11 @@ $(document).ready(function() {
       };
       var queryURL = "https://speech.googleapis.com/v1/speech:recognize?";
       queryURL += $.param(queryObj);
-      //console.log("queryURL="+queryURL);
+      console.log("queryURL="+queryURL);
       $.ajax({
         url: queryURL,
         method: "POST",
-        data: Speech
+        data: JSON.stringify(Speech)
       }).then(function(response) {
         $("#textReply").html(response.results.alternatives[0].transcript);
       });
