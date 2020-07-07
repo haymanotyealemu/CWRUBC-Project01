@@ -89,24 +89,15 @@ $(document).ready(function() {
     // so now convert it back so raw, uncompressed Wav data can be
     // converted to FLAC and then turned into a different blob.
     //var arrayBuffer = new Uint8Array(this.result);
-    var arrayBuffer = extractUintArrayFromBlob(wavBlob);
+    var arrayBuffer = null; // Set as extra binary array from wavBlob 
+    extractUint8ArrayFromBlob(wavBlob);
 
     var encData = [];
     var result;
     var view;
     var metaData;
 
-    function extractUintArrayFromBlob(wavBlob) {
-      var arrBuffer;
-      var cvtReader = new FileReader();
-      cvtReader.onload = function(event) {
-        arrBuffer = event.target.result
-      }
-      cvtReader.readAsArrayBuffer(wavBlob);
-      arrayBuffer = new Uint8Array(arrBuffer);
-    }
-
-
+    // BEG {{{ Utility code from examples/util/data-util.js
     // --- FILE-BUFFER-OPERATIONS ---
     //
     // creates one buffer out of an array of arraybuffers
@@ -429,11 +420,16 @@ $(document).ready(function() {
       }
     }
 
-
     // 
     //  checks if the given ui8_data (ui8array) is of a wav-file
     // 
     function wav_file_processing_check_wav_format(ui8_data){
+      console.log("Inside wav_file_processing_check_wav_format()");
+      console.log("ui8_data.length="+ui8_data.length);
+      console.log("ui8_data.subarray(0,4)="+ui8_data.subarray(0,4));
+      console.log("ui8_data.subarray(8,16)="+ui8_data.subarray(8,16));
+      console.log("ui8_data.subarray(36,40)="+ui8_data.subarray(36,40));
+      console.log("ui8_data="+ui8_data);
       // check: is file a compatible wav-file?
       if ((ui8_data.length < 44) ||
         (String.fromCharCode.apply(null, ui8_data.subarray(0,4)) != "RIFF") ||
@@ -666,6 +662,8 @@ $(document).ready(function() {
       return {metaData: meta_data, status: flac_ok};
     }
     
+    // END }}} Utility code from examples/util/data-util.js
+    
     //result = encodeFlac(arrayBuffer, encData, isVerify(), isUseOgg());
     result = encodeFlac(arrayBuffer, encData, true, false);
     metaData = result.metaData;
@@ -673,8 +671,9 @@ $(document).ready(function() {
     return exportFlacFile(encData, metaData, false);
   }
 
-  function passToSpeechToTextAPI(wavBlob) {
+  function passToSpeechToTextAPI(blob) {
     var flacBlob = convertWavToFLAC(wavBlob);
+    return '∞°';
     // Need file reader object to perform Base64 encoding as a wrapper object
     // to handle Base64 encoding for the API call.
     var ToB64Reader = new FileReader();
@@ -701,7 +700,7 @@ $(document).ready(function() {
     }
     // Now need to call readDataAsURL() to trigger the load event, which
     // will do all the actual work.
-    ToB64Reader.readAsDataURL(flacBlob);
+    ToB64Reader.readAsDataURL(blob);
   }
 
 });
