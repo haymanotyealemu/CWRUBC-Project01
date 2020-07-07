@@ -33,19 +33,22 @@
           <p>
           Push to record:
           <span class="icon button is-info is-right has-text-info">
-            <i id="begRecordWav" class="fa fa-bullseye has-text-white-ter" aria-hidden="true"></i>
+            <i id="startButton" class="fa fa-bullseye has-text-white-ter" aria-hidden="true"></i>
           </span>
           </p>
           <br> 
           <p>
           Done recording:
           <span class="icon button is-info is-right has-text-info">
-            <i id="endRecordWav" class="fa fa-stop has-text-white-ter" aria-hidden="true"></i>
+            <i id="stopButton" class="fa fa-stop has-text-white-ter" aria-hidden="true"></i>
           </span>
           </p>
         </div>
 
-        <div id="textReply" class="tile box">
+        <div id="instruction" class="tile box">
+        </div>
+
+        <div id="textbox" class="tile box">
         </div>
 
       </div>
@@ -60,12 +63,18 @@
   <!-- /* {{{ */
        // <script src="https://cdnjs.cloudflare.com/ajax/libs/recorderjs/0.1.0/recorder.min.js"
   /* hide }}} */ -->
-  <script src="recorder.js"</script>
+  <!-- /* {{{ */
+       // <script src="recorder.js"</script>
+  /* hide }}} */ -->
   <!-- //Use libflac to encode raw WAV data to FLAC -->
-  <script src="libflac.min.js"</script>
+  <!-- /* {{{ */
+       // <script src="libflac.min.js"</script>
+  /* hide }}} */ -->
   <!-- //An HTML5 saveAs() file saver implementation   -->
   <!-- //from https://github.com/eligrey/FileSaver.js  -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+  <!-- /* {{{ */
+       // <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+  /* hide }}} */ -->
   <!-- Third Party Libraries END   }}} -->
   <script src="script.js"></script>
 </body>
