@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project 1</title>
+  <!--Bulma Link-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.0/css/bulma.min.css">
+</head>
+<body>
+  <section class="section">
+    <div class="container">
+      <h1 class="title">Interpre-Friend</h1>
+      <h4 class="title is-size-7 has-text-left">Instruction:</h4>
+      <h4 class="title is-size-7 has-text-left">Press the Start Button to begin recording. You will have XX seconds to record.</h4>    
+      <h4 class="title is-size-7 has-text-left">Press the Stop Button to end the recording. </h4>           
+      <button class="button is-primary is-outlined" id="start">Start</button>
+      <button class="button is-primary is-outlined" id="pause">Pause</button>
+      <button class="button is-primary is-outlined" id="stop">Stop</button>    
+    </div>
+    <figure class="image is-128x128">
+      <img src="https://media2.giphy.com/media/dnoyd6rMvw29q/giphy_s.gif"
+        data-still="https://media2.giphy.com/media/dnoyd6rMvw29q/giphy_s.gif"
+        data-animate="https://media2.giphy.com/media/dnoyd6rMvw29q/giphy.gif"
+        data-state="still" class="gif">
+    </figure>
+    <div class="container">
+      <textarea name="" id="textarea" cols="100" rows="10" style="margin-top:10px; width: 100%;"></textarea>
+    </div>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript"> <!-- {{{ Animate image -->
+    $(".gif").on("click", function() {
+      // The attr jQuery method allows us to get or set the value of any attribute on our HTML element
+      var state = $(this).attr("data-state");
+      // If the clicked image's state is still, update its src attribute to what its data-animate value is.
+      // Then, set the image's data-state to animate
+      // Else set src to the data-still value
+      if (state === "still") {
+        $(this).attr("src", $(this).attr("data-animate"));
+        $(this).attr("data-state", "animate");
+      } else {
+        $(this).attr("src", $(this).attr("data-still"));
+        $(this).attr("data-state", "still");
+      }
+    });
+  </script> <!-- }}} Animate image -->
+  <script src="script.js"></script>
+</body>
+</html>
