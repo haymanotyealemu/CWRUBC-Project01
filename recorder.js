@@ -49,6 +49,7 @@ var Recorder = exports.Recorder = (function () {
         this.recording = false;
         this.callbacks = {
             getBuffer: [],
+            getBufWAV: [],
             exportWAV: []
         };
 
@@ -93,6 +94,9 @@ var Recorder = exports.Recorder = (function () {
                     case 'getBuffer':
                         getBuffer();
                         break;
+                    case 'getBufWAV':
+                        getBufWAV(e.data.type);
+                        break;
                     case 'clear':
                         clear();
                         break;
@@ -127,6 +131,26 @@ var Recorder = exports.Recorder = (function () {
                 var audioBlob = new Blob([dataview], { type: type });
 
                 self.postMessage({ command: 'exportWAV', data: audioBlob });
+            }
+
+            function getBufWAV(type) {
+                var buffers = [];
+                for (var channel = 0; channel < numChannels; channel++) {
+                    buffers.push(mergeBuffers(recBuffers[channel], recLength));
+                }
+                var interleaved = undefined;
+                if (numChannels === 2) {
+                    interleaved = interleave(buffers[0], buffers[1]);
+                } else {
+                    interleaved = buffers[0];
+                }
+                var dataview = encodeWAV(interleaved);
+                console.log('∞° dataview.getUint8(0)="'+dataview.getUint8(0),'"');
+                console.log('∞° dataview.getUint8(1)="'+dataview.getUint8(1),'"');
+                console.log('∞° dataview.getUint8(2)="'+dataview.getUint8(2),'"');
+                console.log('∞° dataview.getUint8(3)="'+dataview.getUint8(3),'"');
+
+                self.postMessage({ command: 'getBufWAV', data: dataview });
             }
 
             function getBuffer() {
@@ -188,11 +212,20 @@ var Recorder = exports.Recorder = (function () {
             }
 
             function encodeWAV(samples) {
+                console.log('∞° Recorder.js encodeWAV....');
+                console.log('∞° samples="'+JSON.stringify(samples),'"');
+                console.log('∞° samples.length="'+samples.length,'"');
                 var buffer = new ArrayBuffer(44 + samples.length * 2);
+                console.log('∞° buffer.byteLength="'+buffer.byteLength,'"');
                 var view = new DataView(buffer);
+                console.log('∞° view.byteLength="'+view.byteLength,'"');
 
                 /* RIFF identifier */
                 writeString(view, 0, 'RIFF');
+                console.log('∞° view.getUint8(0)="'+view.getUint8(0),'"');
+                console.log('∞° view.getUint8(1)="'+view.getUint8(1),'"');
+                console.log('∞° view.getUint8(2)="'+view.getUint8(2),'"');
+                console.log('∞° view.getUint8(3)="'+view.getUint8(3),'"');
                 /* RIFF chunk length */
                 view.setUint32(4, 36 + samples.length * 2, true);
                 /* RIFF type */
@@ -218,7 +251,9 @@ var Recorder = exports.Recorder = (function () {
                 /* data chunk length */
                 view.setUint32(40, samples.length * 2, true);
 
+                console.log('∞° B view="'+JSON.stringify(view),'"');
                 floatTo16BitPCM(view, 44, samples);
+                console.log('∞° A view="'+JSON.stringify(view),'"');
 
                 return view;
             }
@@ -276,6 +311,20 @@ var Recorder = exports.Recorder = (function () {
 
             this.worker.postMessage({
                 command: 'exportWAV',
+                type: mimeType
+            });
+        }
+    }, {
+        key: 'getBufWAV',
+        value: function getBufWAV(cb, mimeType) {
+            mimeType = mimeType || this.config.mimeType;
+            cb = cb || this.config.callback;
+            if (!cb) throw new Error('Callback not set');
+
+            this.callbacks.getBufWAV.push(cb);
+
+            this.worker.postMessage({
+                command: 'getBufWAV',
                 type: mimeType
             });
         }

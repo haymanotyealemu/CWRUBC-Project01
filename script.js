@@ -7,6 +7,7 @@ $(document).ready(function() {
   //Example Demo as reference found:
   //https://blog.addpipe.com/using-recorder-js-to-capture-wav-audio-in-your-html5-web-site/
   //
+  const NUM_CHANNELS=1;
   //stream from getUserMedia() 
   var gumStream;
   //Recorder.js object 
@@ -27,7 +28,7 @@ $(document).ready(function() {
   } 
 
   // Base64 encoded data without header goes in content
-  var wavSampleRate = 0;
+  var recSampleRate = 0;
   var speech = {
     config: {
       encoding: "LINEAR16",
@@ -40,6 +41,10 @@ $(document).ready(function() {
   };
 
   $("#start").on("click", function(event) {
+    // Start the lightning animation as feedback
+    $(".gif").attr("src", $(".gif").attr("data-animate"));
+    $(".gif").attr("data-state", "animate");
+    //
     navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
       console.log("getUserMedia() success, stream created, initializing Recorder.js ..."); 
       // Assign to gumStream for later use
@@ -55,13 +60,13 @@ $(document).ready(function() {
       // (1 channel) Recording 2 channels will double the file size
       // NB. Need mono sound for Google Cloud Speech to Text API.
       rec = new Recorder(input, {
-        numChannels: 1
+        numChannels: NUM_CHANNELS
       }); 
       //start the recording process 
       rec.record();
       // Note what sample rate the Web API felt like using since
       // it cannot be controlled.
-      wavSampleRate = audioContext.sampleRate;
+      recSampleRate = audioContext.sampleRate;
       speech.config.sampleRateHertz = audioContext.sampleRate;
       console.log("speech.config.sampleRateHertz="+
         speech.config.sampleRateHertz);
@@ -72,6 +77,10 @@ $(document).ready(function() {
   });
 
   $("#stop").on("click", function(event) {
+    // Stop the lightning animation as feedback
+    $(".gif").attr("src", $(".gif").attr("data-still"));
+    $(".gif").attr("data-state", "still");
+    //
     rec.stop();
     console.log("Recording stopped");
 
@@ -79,19 +88,27 @@ $(document).ready(function() {
     gumStream.getAudioTracks()[0].stop();
 
     //create the wav blob and pass it on to createDownloadLink
-    rec.exportWAV(passToSpeechToTextAPI);
+    /* {{{ **
+    ** rec.exportWAV(passToSpeechToTextAPI);
+    ** rec.getBuffer(passToSpeechToTextAPI);
+    ** rec.getBufWAV(passToSpeechToTextAPI);
+    ** }}} */
+    rec.exportWAV(convertToFLAC);
   });
 
-  function convertWavToFLAC(wavBlob) {
+  function convertToFLAC(blob) {
     // Adapt libflac example from app-encode.js
     //
     // Recorder.JS already converted its array buffer to a blob,
     // so now convert it back so raw, uncompressed Wav data can be
     // converted to FLAC and then turned into a different blob.
     //var arrayBuffer = new Uint8Array(this.result);
-    var arrayBuffer = null; // Set as extra binary array from wavBlob 
-    extractUint8ArrayFromBlob(wavBlob);
+    //var arrayBuffer = new Uint8Array(arrayBuffer); // Set as extra binary array from wavBlob 
 
+    /* {{{ **
+    ** var samples;
+    ** var wavDataView;
+    ** }}} */
     var encData = [];
     var result;
     var view;
@@ -119,89 +136,96 @@ $(document).ready(function() {
       return result;
     }
 
+    // @param recBuffers {Array<Array<Uint8Array>>}
+    //      the array of buffered audio data, where each entry contains an array for the channels, i.e.
+    //      recBuffers[0]: [channel_1_data, channel_2_data, ..., channel_n_data]
+    //      recBuffers[1]: [channel_1_data, channel_2_data, ..., channel_n_data]
+    //      ...
+    //      recBuffers[length-1]: [channel_1_data, channel_2_data, ..., channel_n_data]
+    // 
+    // @param channels {Number} count of channels
+    // @param bitsPerSample {Number} bits per sample, i.e.: bitsPerSample/8 == bytes-per-sample
+    // @returns {Uint8Array} audio data where channels are interleaved
+    // 
+    function interleave(recBuffers, channels, bitsPerSample){
+      console.log('∞° interleave....');
+      console.log('∞° recBuffers="'+JSON.stringify(recBuffers),'"');
+    
+      var byteLen = bitsPerSample / 8;
+    
+      //NOTE 24-bit samples are padded with 1 byte
+      var pad8 = (bitsPerSample === 24 || bitsPerSample === 8)? 1 : 0;
+      if(pad8){
+        byteLen += pad8;
+      }
+    
+      console.log('∞° byteLen="'+byteLen,'"');
+      console.log('∞° pad8="'+pad8,'"');
+      //calculate total length for interleaved data
+      var dataLength = 0;
+      for(var i=0; i < channels; ++i){
+        dataLength += getLengthFor(recBuffers, i, byteLen, pad8);
+      }
+    
+      console.log('∞° dataLength="'+dataLength,'"');
+      var result = new Uint8Array(dataLength);
+      console.log('∞° B result="'+JSON.stringify(result),'"');
+    
+      var buff = null,
+        buffLen = 0,
+        index = 0,
+        inputIndex = 0,
+        ch_i = 0,
+        b_i = 0,
+        pad_i = false,
+        ord = false;
+    
+      for(var arrNum = 0, arrCount = recBuffers.length; arrNum < arrCount; ++arrNum){
+    
+        //for each buffer (i.e. array of Uint8Arrays):
+        buff = recBuffers[arrNum];
+        buffLen = buff[0].length;
+        inputIndex = 0;
+        pad_i = false;
+        ord = false;
+    
+        //interate over buffer
+        while(inputIndex < buffLen){
+    
+          //write channel data
+          for(ch_i=0; ch_i < channels; ++ch_i){
+            //write sample-length
+            for(b_i=0; b_i < byteLen; ++b_i){
+              // write data & update target-index
+              if(pad8) {
+                pad_i = pad8 && (b_i === byteLen - pad8);
+                if(pad_i){
+                  if(buff[ch_i][inputIndex + b_i] !== 0 && buff[ch_i][inputIndex + b_i] !== 255){
+                    console.error('[ERROR] mis-aligned padding: ignoring non-padding value (padding should be 0 or 255) at '+(inputIndex + b_i)+' -> ', buff[ch_i][inputIndex + b_i]);
+                  }
+                } else {
+                  if(bitsPerSample === 8){
+                    ord = buff[ch_i][inputIndex + b_i + 1] === 0;
+                    result[index++] = ord? buff[ch_i][inputIndex + b_i] | 128 : buff[ch_i][inputIndex + b_i] & 127;
+                  } else {
+                    result[index++] = buff[ch_i][inputIndex + b_i];
+                  }
+    
+                }
+              } else {
+                result[index++] = buff[ch_i][inputIndex + b_i];
+              }
+            }
+          }
+          //update source-index
+          inputIndex+=byteLen;
+        }
+      }
+      console.log('∞° A result="'+JSON.stringify(result),'"');
+      return result;
+    }
+    
     /* {{{ **
-    ** // @param recBuffers {Array<Array<Uint8Array>>}
-    ** //      the array of buffered audio data, where each entry contains an array for the channels, i.e.
-    ** //      recBuffers[0]: [channel_1_data, channel_2_data, ..., channel_n_data]
-    ** //      recBuffers[1]: [channel_1_data, channel_2_data, ..., channel_n_data]
-    ** //      ...
-    ** //      recBuffers[length-1]: [channel_1_data, channel_2_data, ..., channel_n_data]
-    ** // 
-    ** // @param channels {Number} count of channels
-    ** // @param bitsPerSample {Number} bits per sample, i.e.: bitsPerSample/8 == bytes-per-sample
-    ** // @returns {Uint8Array} audio data where channels are interleaved
-    ** // 
-    ** function interleave(recBuffers, channels, bitsPerSample){
-    ** 
-    **   var byteLen = bitsPerSample / 8;
-    ** 
-    **   //NOTE 24-bit samples are padded with 1 byte
-    **   var pad8 = (bitsPerSample === 24 || bitsPerSample === 8)? 1 : 0;
-    **   if(pad8){
-    **     byteLen += pad8;
-    **   }
-    ** 
-    **   //calculate total length for interleaved data
-    **   var dataLength = 0;
-    **   for(var i=0; i < channels; ++i){
-    **     dataLength += getLengthFor(recBuffers, i, byteLen, pad8);
-    **   }
-    ** 
-    **   var result = new Uint8Array(dataLength);
-    ** 
-    **   var buff = null,
-    **     buffLen = 0,
-    **     index = 0,
-    **     inputIndex = 0,
-    **     ch_i = 0,
-    **     b_i = 0,
-    **     pad_i = false,
-    **     ord = false;
-    ** 
-    **   for(var arrNum = 0, arrCount = recBuffers.length; arrNum < arrCount; ++arrNum){
-    ** 
-    **     //for each buffer (i.e. array of Uint8Arrays):
-    **     buff = recBuffers[arrNum];
-    **     buffLen = buff[0].length;
-    **     inputIndex = 0;
-    **     pad_i = false;
-    **     ord = false;
-    ** 
-    **     //interate over buffer
-    **     while(inputIndex < buffLen){
-    ** 
-    **       //write channel data
-    **       for(ch_i=0; ch_i < channels; ++ch_i){
-    **         //write sample-length
-    **         for(b_i=0; b_i < byteLen; ++b_i){
-    **           // write data & update target-index
-    **           if(pad8) {
-    **             pad_i = pad8 && (b_i === byteLen - pad8);
-    **             if(pad_i){
-    **               if(buff[ch_i][inputIndex + b_i] !== 0 && buff[ch_i][inputIndex + b_i] !== 255){
-    **                 console.error('[ERROR] mis-aligned padding: ignoring non-padding value (padding should be 0 or 255) at '+(inputIndex + b_i)+' -> ', buff[ch_i][inputIndex + b_i]);
-    **               }
-    **             } else {
-    **               if(bitsPerSample === 8){
-    **                 ord = buff[ch_i][inputIndex + b_i + 1] === 0;
-    **                 result[index++] = ord? buff[ch_i][inputIndex + b_i] | 128 : buff[ch_i][inputIndex + b_i] & 127;
-    **               } else {
-    **                 result[index++] = buff[ch_i][inputIndex + b_i];
-    **               }
-    ** 
-    **             }
-    **           } else {
-    **             result[index++] = buff[ch_i][inputIndex + b_i];
-    **           }
-    **         }
-    **       }
-    **       //update source-index
-    **       inputIndex+=byteLen;
-    **     }
-    **   }
-    **   return result;
-    ** }
-    ** 
     ** // creates blob element PCM audio data incl. WAV header
     ** // 
     ** // @param recBuffers {Array<Array<Uint8Array>>}
@@ -259,70 +283,75 @@ $(document).ready(function() {
     // 			the byte-length
     // 
     function getLengthFor(recBuffers, index, sampleBytes, bytePadding){
+      console.log('∞° getLengthFor....');
+      console.log('∞° index="'+index,'"');
+      console.log('∞° sampleBytes="'+sampleBytes,'"');
+      console.log('∞° bytePadding="'+bytePadding,'"');
 
       //get length
       var recLength = 0, blen;
       var decrFac = bytePadding > 0? bytePadding / sampleBytes : 0;//<- factor do decrease size in case of padding bytes
       for(var i=recBuffers.length - 1; i >= 0; --i){
         blen = recBuffers[i][index].byteLength;
+        console.log('∞° recBuffers[i='+i+'][index='+index+'].byteLength="'+recBuffers[i][index].byteLength,'"');
+        console.log('∞° blen[i='+i+']="'+blen,'"');
         if(bytePadding > 0){
           recLength += blen - (decrFac * blen);
         } else {
           recLength += blen;
         }
       }
+      console.log('∞° recLength="'+recLength,'"');
       return recLength;
     }
 
-    /* {{{ **
-    ** // write PCM data to a WAV file, incl. header
-    ** // 
-    ** // @param samples {Uint8Array} the PCM audio data
-    ** // @param sampleRate {Number} the sample rate for the audio data
-    ** // @param channels {Number} the number of channels that the audio data contains
-    ** // 
-    ** // @returns {DataView} the WAV data incl. header
-    ** // 
-    ** function encodeWAV(samples, sampleRate, channels, bitsPerSample){
-    ** 
-    **   var bytePerSample = bitsPerSample / 8;
-    **   var length = samples.length * samples.BYTES_PER_ELEMENT;
-    ** 
-    **   var buffer = new ArrayBuffer(44 + length);
-    **   var view = new DataView(buffer);
-    ** 
-    **   // RIFF identifier
-    **   writeString(view, 0, 'RIFF');
-    **   // file length
-    **   view.setUint32(4, 36 + length, true);
-    **   // RIFF type
-    **   writeString(view, 8, 'WAVE');
-    **   // format chunk identifier
-    **   writeString(view, 12, 'fmt ');
-    **   // format chunk length
-    **   view.setUint32(16, 16, true);
-    **   // sample format (raw)
-    **   view.setUint16(20, 1, true);
-    **   // channel count
-    **   view.setUint16(22, channels, true);
-    **   // sample rate
-    **   view.setUint32(24, sampleRate, true);
-    **   // byte rate (sample rate * block align)
-    **   view.setUint32(28, sampleRate * channels * bytePerSample, true);
-    **   // block align (channel count * bytes per sample)
-    **   view.setUint16(32, channels * bytePerSample, true);
-    **   // bits per sample
-    **   view.setUint16(34, bitsPerSample, true);
-    **   // data chunk identifier
-    **   writeString(view, 36, 'data');
-    **   // data chunk length
-    **   view.setUint32(40, length, true);
-    ** 
-    **   writeData(view, 44, samples)
-    ** 
-    **   return view;
-    ** }
-    ** }}} */
+    // write PCM data to a WAV file, incl. header
+    // 
+    // @param samples {Uint8Array} the PCM audio data
+    // @param sampleRate {Number} the sample rate for the audio data
+    // @param channels {Number} the number of channels that the audio data contains
+    // 
+    // @returns {DataView} the WAV data incl. header
+    // 
+    function encodeWAV(samples, sampleRate, channels, bitsPerSample){
+    
+      var bytePerSample = bitsPerSample / 8;
+      var length = samples.length * samples.BYTES_PER_ELEMENT;
+    
+      var buffer = new ArrayBuffer(44 + length);
+      var view = new DataView(buffer);
+    
+      // RIFF identifier
+      writeString(view, 0, 'RIFF');
+      // file length
+      view.setUint32(4, 36 + length, true);
+      // RIFF type
+      writeString(view, 8, 'WAVE');
+      // format chunk identifier
+      writeString(view, 12, 'fmt ');
+      // format chunk length
+      view.setUint32(16, 16, true);
+      // sample format (raw)
+      view.setUint16(20, 1, true);
+      // channel count
+      view.setUint16(22, channels, true);
+      // sample rate
+      view.setUint32(24, sampleRate, true);
+      // byte rate (sample rate * block align)
+      view.setUint32(28, sampleRate * channels * bytePerSample, true);
+      // block align (channel count * bytes per sample)
+      view.setUint16(32, channels * bytePerSample, true);
+      // bits per sample
+      view.setUint16(34, bitsPerSample, true);
+      // data chunk identifier
+      writeString(view, 36, 'data');
+      // data chunk length
+      view.setUint32(40, length, true);
+    
+      writeData(view, 44, samples)
+    
+      return view;
+    }
 
     // data (missing) meta-data to STREAMINFO meta-data block of the FLAC data
     // 
@@ -664,16 +693,38 @@ $(document).ready(function() {
     
     // END }}} Utility code from examples/util/data-util.js
     
-    //result = encodeFlac(arrayBuffer, encData, isVerify(), isUseOgg());
-    result = encodeFlac(arrayBuffer, encData, true, false);
-    metaData = result.metaData;
-    //return exportFlacFile(encData, metaData, isUseOgg());
-    return exportFlacFile(encData, metaData, false);
+    //Need to either use Flac.on() or set handler Flac.onready:
+    //Flac apparently loads parts of itself dynamically, so
+    //wait until libflac is ready before continuing.
+    Flac.on('ready', function(event) {
+      var libFlac = event.target;
+      //NOTE: Flac === libFlac
+
+      //execute code that uses libflac.js:
+      // Intermediate steps from exportWavFile()
+      /* {{{ **
+      ** samples = interleave(arrayBuffer, NUM_CHANNELS, 16);
+      ** wavDataView = encodeWAV(samples, recSampleRate, NUM_CHANNELS, 16);
+      ** }}} */
+      //result = encodeFlac(arrayBuffer, encData, isVerify(), isUseOgg());
+      /* {{{ **
+      ** result = encodeFlac(wavDataView, encData, true, false);
+      ** }}} */
+      blob.arrayBuffer().then(buffer => {
+        result = encodeFlac(buffer, encData, true, false);
+        metaData = result.metaData;
+        flacBlob = exportFlacFile(encData, metaData, false);
+        passToSpeechToTextAPI(flacBlob);
+      }); 
+      //return exportFlacFile(encData, metaData, isUseOgg());
+      //return exportFlacFile(encData, metaData, false);
+    });
   }
 
-  function passToSpeechToTextAPI(blob) {
-    var flacBlob = convertWavToFLAC(wavBlob);
-    return '∞°';
+  function passToSpeechToTextAPI(data) {
+    /* {{{ **
+    ** var flacBlob = convertToFLAC(data);
+    ** }}} */
     // Need file reader object to perform Base64 encoding as a wrapper object
     // to handle Base64 encoding for the API call.
     var ToB64Reader = new FileReader();
