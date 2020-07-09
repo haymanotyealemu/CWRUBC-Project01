@@ -29,6 +29,18 @@ $(document).ready(function() {
 
   // Base64 encoded data without header goes in content
   var recSampleRate = 0;
+  /* {{{ **
+  ** var speech = {
+  **   config: {
+  **     encoding: "LINEAR16",
+  **     sampleRateHertz: 0,
+  **     languageCode: "en-US"
+  **   },
+  **   audio: {
+  **     content: ""
+  **   }
+  ** };
+  ** }}} */
   var speech = {
     config: {
       encoding: "LINEAR16",
@@ -92,8 +104,9 @@ $(document).ready(function() {
     ** rec.exportWAV(passToSpeechToTextAPI);
     ** rec.getBuffer(passToSpeechToTextAPI);
     ** rec.getBufWAV(passToSpeechToTextAPI);
+    ** rec.exportWAV(convertToFLAC);
     ** }}} */
-    rec.exportWAV(convertToFLAC);
+    rec.exportWAV(passToSpeechToTextAPI);
   });
 
   function convertToFLAC(blob) {
@@ -136,94 +149,96 @@ $(document).ready(function() {
       return result;
     }
 
-    // @param recBuffers {Array<Array<Uint8Array>>}
-    //      the array of buffered audio data, where each entry contains an array for the channels, i.e.
-    //      recBuffers[0]: [channel_1_data, channel_2_data, ..., channel_n_data]
-    //      recBuffers[1]: [channel_1_data, channel_2_data, ..., channel_n_data]
-    //      ...
-    //      recBuffers[length-1]: [channel_1_data, channel_2_data, ..., channel_n_data]
-    // 
-    // @param channels {Number} count of channels
-    // @param bitsPerSample {Number} bits per sample, i.e.: bitsPerSample/8 == bytes-per-sample
-    // @returns {Uint8Array} audio data where channels are interleaved
-    // 
-    function interleave(recBuffers, channels, bitsPerSample){
-      console.log('∞° interleave....');
-      console.log('∞° recBuffers="'+JSON.stringify(recBuffers),'"');
-    
-      var byteLen = bitsPerSample / 8;
-    
-      //NOTE 24-bit samples are padded with 1 byte
-      var pad8 = (bitsPerSample === 24 || bitsPerSample === 8)? 1 : 0;
-      if(pad8){
-        byteLen += pad8;
-      }
-    
-      console.log('∞° byteLen="'+byteLen,'"');
-      console.log('∞° pad8="'+pad8,'"');
-      //calculate total length for interleaved data
-      var dataLength = 0;
-      for(var i=0; i < channels; ++i){
-        dataLength += getLengthFor(recBuffers, i, byteLen, pad8);
-      }
-    
-      console.log('∞° dataLength="'+dataLength,'"');
-      var result = new Uint8Array(dataLength);
-      console.log('∞° B result="'+JSON.stringify(result),'"');
-    
-      var buff = null,
-        buffLen = 0,
-        index = 0,
-        inputIndex = 0,
-        ch_i = 0,
-        b_i = 0,
-        pad_i = false,
-        ord = false;
-    
-      for(var arrNum = 0, arrCount = recBuffers.length; arrNum < arrCount; ++arrNum){
-    
-        //for each buffer (i.e. array of Uint8Arrays):
-        buff = recBuffers[arrNum];
-        buffLen = buff[0].length;
-        inputIndex = 0;
-        pad_i = false;
-        ord = false;
-    
-        //interate over buffer
-        while(inputIndex < buffLen){
-    
-          //write channel data
-          for(ch_i=0; ch_i < channels; ++ch_i){
-            //write sample-length
-            for(b_i=0; b_i < byteLen; ++b_i){
-              // write data & update target-index
-              if(pad8) {
-                pad_i = pad8 && (b_i === byteLen - pad8);
-                if(pad_i){
-                  if(buff[ch_i][inputIndex + b_i] !== 0 && buff[ch_i][inputIndex + b_i] !== 255){
-                    console.error('[ERROR] mis-aligned padding: ignoring non-padding value (padding should be 0 or 255) at '+(inputIndex + b_i)+' -> ', buff[ch_i][inputIndex + b_i]);
-                  }
-                } else {
-                  if(bitsPerSample === 8){
-                    ord = buff[ch_i][inputIndex + b_i + 1] === 0;
-                    result[index++] = ord? buff[ch_i][inputIndex + b_i] | 128 : buff[ch_i][inputIndex + b_i] & 127;
-                  } else {
-                    result[index++] = buff[ch_i][inputIndex + b_i];
-                  }
-    
-                }
-              } else {
-                result[index++] = buff[ch_i][inputIndex + b_i];
-              }
-            }
-          }
-          //update source-index
-          inputIndex+=byteLen;
-        }
-      }
-      console.log('∞° A result="'+JSON.stringify(result),'"');
-      return result;
-    }
+    /* {{{ **
+    ** // @param recBuffers {Array<Array<Uint8Array>>}
+    ** //      the array of buffered audio data, where each entry contains an array for the channels, i.e.
+    ** //      recBuffers[0]: [channel_1_data, channel_2_data, ..., channel_n_data]
+    ** //      recBuffers[1]: [channel_1_data, channel_2_data, ..., channel_n_data]
+    ** //      ...
+    ** //      recBuffers[length-1]: [channel_1_data, channel_2_data, ..., channel_n_data]
+    ** // 
+    ** // @param channels {Number} count of channels
+    ** // @param bitsPerSample {Number} bits per sample, i.e.: bitsPerSample/8 == bytes-per-sample
+    ** // @returns {Uint8Array} audio data where channels are interleaved
+    ** // 
+    ** function interleave(recBuffers, channels, bitsPerSample){
+    **   console.log('∞° interleave....');
+    **   console.log('∞° recBuffers="'+JSON.stringify(recBuffers),'"');
+    ** 
+    **   var byteLen = bitsPerSample / 8;
+    ** 
+    **   //NOTE 24-bit samples are padded with 1 byte
+    **   var pad8 = (bitsPerSample === 24 || bitsPerSample === 8)? 1 : 0;
+    **   if(pad8){
+    **     byteLen += pad8;
+    **   }
+    ** 
+    **   console.log('∞° byteLen="'+byteLen,'"');
+    **   console.log('∞° pad8="'+pad8,'"');
+    **   //calculate total length for interleaved data
+    **   var dataLength = 0;
+    **   for(var i=0; i < channels; ++i){
+    **     dataLength += getLengthFor(recBuffers, i, byteLen, pad8);
+    **   }
+    ** 
+    **   console.log('∞° dataLength="'+dataLength,'"');
+    **   var result = new Uint8Array(dataLength);
+    **   console.log('∞° B result="'+JSON.stringify(result),'"');
+    ** 
+    **   var buff = null,
+    **     buffLen = 0,
+    **     index = 0,
+    **     inputIndex = 0,
+    **     ch_i = 0,
+    **     b_i = 0,
+    **     pad_i = false,
+    **     ord = false;
+    ** 
+    **   for(var arrNum = 0, arrCount = recBuffers.length; arrNum < arrCount; ++arrNum){
+    ** 
+    **     //for each buffer (i.e. array of Uint8Arrays):
+    **     buff = recBuffers[arrNum];
+    **     buffLen = buff[0].length;
+    **     inputIndex = 0;
+    **     pad_i = false;
+    **     ord = false;
+    ** 
+    **     //interate over buffer
+    **     while(inputIndex < buffLen){
+    ** 
+    **       //write channel data
+    **       for(ch_i=0; ch_i < channels; ++ch_i){
+    **         //write sample-length
+    **         for(b_i=0; b_i < byteLen; ++b_i){
+    **           // write data & update target-index
+    **           if(pad8) {
+    **             pad_i = pad8 && (b_i === byteLen - pad8);
+    **             if(pad_i){
+    **               if(buff[ch_i][inputIndex + b_i] !== 0 && buff[ch_i][inputIndex + b_i] !== 255){
+    **                 console.error('[ERROR] mis-aligned padding: ignoring non-padding value (padding should be 0 or 255) at '+(inputIndex + b_i)+' -> ', buff[ch_i][inputIndex + b_i]);
+    **               }
+    **             } else {
+    **               if(bitsPerSample === 8){
+    **                 ord = buff[ch_i][inputIndex + b_i + 1] === 0;
+    **                 result[index++] = ord? buff[ch_i][inputIndex + b_i] | 128 : buff[ch_i][inputIndex + b_i] & 127;
+    **               } else {
+    **                 result[index++] = buff[ch_i][inputIndex + b_i];
+    **               }
+    ** 
+    **             }
+    **           } else {
+    **             result[index++] = buff[ch_i][inputIndex + b_i];
+    **           }
+    **         }
+    **       }
+    **       //update source-index
+    **       inputIndex+=byteLen;
+    **     }
+    **   }
+    **   console.log('∞° A result="'+JSON.stringify(result),'"');
+    **   return result;
+    ** }
+    ** }}} */
     
     /* {{{ **
     ** // creates blob element PCM audio data incl. WAV header
@@ -696,6 +711,7 @@ $(document).ready(function() {
     //Need to either use Flac.on() or set handler Flac.onready:
     //Flac apparently loads parts of itself dynamically, so
     //wait until libflac is ready before continuing.
+    var Flac = Module;
     Flac.on('ready', function(event) {
       var libFlac = event.target;
       //NOTE: Flac === libFlac
@@ -732,7 +748,10 @@ $(document).ready(function() {
       // Since the file reader object adds an extra Data URI as a header
       // chop this information off with a regular expression search/replace
       // and make the actual API call with that version
-      speech.audio.content = ToB64Reader.result.replace(/^data:.+;base64,/, '');
+      /* {{{ **
+      ** speech.audio.content = ToB64Reader.result.replace(/^data:.+;base64,/, '');
+      ** }}} */
+      speech.audio.content = ToB64Reader.result;
       console.log("speech.audio.content="+speech.audio.content); // Encoded data
       // Use jQuery .param to build the Google Cloud speech to text query URL
       var queryObj = {
@@ -741,17 +760,20 @@ $(document).ready(function() {
       var queryURL = "https://speech.googleapis.com/v1/speech:recognize?";
       queryURL += $.param(queryObj);
       console.log("queryURL="+queryURL);
+      var speechData = JSON.stringify(speech);
+      console.log('∞° speechData="'+speechData,'"');
       $.ajax({
         url: queryURL,
         method: "POST",
-        data: JSON.stringify(speech)
+        data: speechData,
+        dataType: "JSON"
       }).then(function(response) {
         $("#textReply").html(response.results.alternatives[0].transcript);
       });
     }
     // Now need to call readDataAsURL() to trigger the load event, which
     // will do all the actual work.
-    ToB64Reader.readAsDataURL(blob);
+    ToB64Reader.readAsDataURL(data);
   }
 
 });
