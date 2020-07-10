@@ -1,6 +1,7 @@
 const key1MSUnifiedSpeechAPI = "318dd88e400d4ac48bf3740a108a565d";
+//const key1MSUnifiedSpeechAPI = "54b1b031c6msh1d90d8db06bc946p115151jsn85d0cfde6b34";
 
-var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key1MSUnifiedSpeechAPI, "eastus");
+var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key1MSUnifiedSpeechAPI, "westus");
 var audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
 var recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
 
@@ -12,7 +13,7 @@ $(document).ready(function() {
     //
     recognizer.recognizeOnceAsync(result => {
       // Interact with result
-      console.log('∞° JSON.stringify(result)="'+JSON.stringify(result),'"');
+      $("#text-display").text(result.text);
     });
   });
 
@@ -41,7 +42,6 @@ $(document).ready(function() {
       queryURL += $.param(queryObj);
       console.log("queryURL="+queryURL);
       var speechData = JSON.stringify(speech);
-      console.log('∞° speechData="'+speechData,'"');
       $.ajax({
         url: queryURL,
         method: "POST",
