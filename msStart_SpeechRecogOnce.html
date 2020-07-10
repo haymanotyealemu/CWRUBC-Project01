@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Microsoft Cognitive Services Speech SDK JavaScript Quickstart</title>
+  <meta charset="utf-8" />
+</head>
+<body style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:13px;">
+  <!-- <uidiv> -->
+  <div id="warning">
+    <h1 style="font-weight:500;">
+    Speech Recognition Speech SDK not found (microsoft.cognitiveservices.speech.sdk.bundle.js missing).
+    </h1>
+  </div>
+  
+  <div id="content" style="display:none">
+    <table width="100%">
+      <tr>
+        <td></td>
+        <td><h1 style="font-weight:500;">Microsoft Cognitive Services Speech SDK JavaScript Quickstart</h1></td>
+      </tr>
+      <tr>
+        <td align="right">
+        <a href="https://docs.microsoft.com/azure/cognitive-services/speech-service/get-started" target="_blank">Subscription</a>
+        :</td>
+        <td><input id="subscriptionKey" type="text" size="40" value="7c3c6a7e-356a-49f0-a0af-08e0f16d9538"></td>
+      </tr>
+      <tr>
+        <td align="right">Region</td>
+        <td><input id="serviceRegion" type="text" size="40" value="eastus"></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td><button id="startRecognizeOnceAsyncButton">Start recognition</button></td>
+      </tr>
+      <tr>
+        <td align="right" valign="top">Results</td>
+        <td><textarea id="phraseDiv" style="display: inline-block;width:500px;height:200px"></textarea></td>
+      </tr>
+    </table>
+  </div>
+  <!-- </uidiv> -->
+
+  <!-- <speechsdkref>  {{{ -->
+  <!-- Speech SDK reference sdk. -->
+  <script src="microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
+  <!-- </speechsdkref> }}} -->
+
+  <!-- <authorizationfunction>  {{{ -->
+  <!-- Speech SDK Authorization token -->
+  <!-- /* {{{ */
+       // <script src="authorization.js"></script>
+  /* hide }}} */ -->
+  <!-- </authorizationfunction> }}} -->
+
+  <!-- <quickstartcode>  {{{ -->
+  <!-- Speech SDK USAGE -->
+  <script src="quickStartRecognizeOnce.js"></script>
+  <!-- </quickstartcode> }}} -->
+</body>
+</html>
+
