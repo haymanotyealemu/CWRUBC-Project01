@@ -31,10 +31,10 @@ $(document).ready(function() {
     recognizer.recognized = function (s, e) {
       if (e.result.reason !== SpeechSDK.ResultReason.NoMatch) {
         // Have a recognized phrase, so
-        // Display it
-        $("#text-display").text(e.result.text);
         // Store it to array
         phrasesAsRecorded.push(e.result.text)
+        // Display all the snippets starting each one on its own line
+        $("#text-display").text(phrasesAsRecorded.join("\n"));
       } else {
       }
     }
