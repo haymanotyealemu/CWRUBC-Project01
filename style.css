@@ -1,0 +1,26 @@
+/*      */
+
+html {
+    box-sizing: border-box;
+}
+.recording-time{
+    float:right;
+}
+.center{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+h1 {
+  font-family:'Poppins', sans-serif;
+  text-decoration: underline;
+}
+.footer{
+    padding:10px;
+    margin-bottom: 0;
+}
+.hero{
+    margin-top: 10px;
+    padding-top: 10px;
+}
+

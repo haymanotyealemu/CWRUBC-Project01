@@ -11,24 +11,16 @@
     integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf"
     crossorigin="anonymous"
     />
-    <style>
-        .recording-time{
-            float:right;
-        }
-        .center{
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        
-    </style>
+  <!--link external css-->
+  <link rel="stylesheet" href="style.css">
+  <!--Google Font Link-->
+  <link href="https://fonts.googleapis.com/css2?family=Modak&family=Poppins:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
   <nav class="navbar is-transparent is-primary is-fixed-top " role="navigation" aria-label="main navigation">
     <div class="container">
         <div class="navbar-brand">
-            <a class="navbar-item is-size-3 has-text-white" href="#" style="font-weight: bold;">Interpre-Friend</a>
+            <a class="navbar-item is-size-3 has-text-white" href="#" style="font-weight: bold;"><span class="brand-icon"><image src="https://cdn.iconscout.com/icon/premium/png-256-thumb/speech-text-1674833-1420826.png" style="width:50px; height: 50px;"></span>Interpre-Friend</a>
             <span class="navbar-burger burger" data-target="navMenu">
               <span aria-hidden="true"></span>
               <span aria-hidden="true"></span>
@@ -50,21 +42,53 @@
         </div>
     </div>
   </nav>
-  <section class="section has-background-primary-light is-large">
-    <div class="container">
-      <div class="content is-size-5 has-text-weight-medium pt-0">
-          <h1 class="title is-size-3">Instruction:</h1>
-              <ul>
-                  <li>Press the Start Button to begin recording.</li>
-                  <li>You will have XX seconds to record.</li>
-                  <li>Press the Stop Button to end the recording.</li>
-                  <li>Your translation will be displayed in the text area!</li>    
-                </ul>
-      </div>               
+  <section class="hero has-background-primary-light ">
+    <div class="hero-body">
+      <div class="container">
+        <h2 class="title is-size-3">
+          Instructions:
+        </h2>
+        <div class="content is-size-5 has-text-weight-medium ">
+          <ul>
+            <li>Press the Start Button to begin recording.</li>
+            <li>You will have XX seconds to record.</li>
+            <li>Press the Stop Button to end the recording.</li>
+            <li>Your translation will be displayed in the text area!</li>    
+          </ul>
+        </div>
+        <div class="container">
+          <figure class="image center "style="max-width:512px;">
+            <img src="https://media2.giphy.com/media/dnoyd6rMvw29q/giphy_s.gif" data-still="https://media2.giphy.com/media/dnoyd6rMvw29q/giphy_s.gif" data-animate="https://media2.giphy.com/media/dnoyd6rMvw29q/giphy.gif" data-state="still" class="gif" alt="">
+          </figure >
+        </div>
+        
+      </div>
     </div>
   </section>
+  <footer class="footer">
+    <div class="content has-text-centered">
+      <p>
+        <strong>Speech-Text</strong> by <a href="#">J.L M.T J.P D.A & H.W</a> <span>@Copyright 2020</span>
+      </p>
+    </div>
+  </footer>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
-  <script type="text/javascript"></script>
+  <script type="text/javascript">
+            $(".gif").on("click", function() {
+          // The attr jQuery method allows us to get or set the value of any attribute on our HTML element
+        var state = $(this).attr("data-state");
+          // If the clicked image's state is still, update its src attribute to what its data-animate value is.
+          // Then, set the image's data-state to animate
+          // Else set src to the data-still value
+        if (state === "still") {
+            $(this).attr("src", $(this).attr("data-animate"));
+            $(this).attr("data-state", "animate");
+        } else {
+            $(this).attr("src", $(this).attr("data-still"));
+            $(this).attr("data-state", "still");
+        }
+        });
+  </script>
 </body>
 </html> 
