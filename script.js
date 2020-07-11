@@ -4,56 +4,59 @@ const key1MSUnifiedSpeechAPI = "318dd88e400d4ac48bf3740a108a565d";
 var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key1MSUnifiedSpeechAPI, "westus");
 var audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
 var recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+var phrasesAsRecorded = [];
+var phrasesTranslated = [];
 
 $(document).ready(function() {
-  $("#start").on("click", function(event) {
-    // Start the lightning animation as feedback
+  function lightningToAnimated() {
     $(".gif").attr("src", $(".gif").attr("data-animate"));
     $(".gif").attr("data-state", "animate");
-    //
-    recognizer.recognizeOnceAsync(result => {
-      // Interact with result
-      $("#text-display").text(result.text);
-    });
+  }
+
+  function lightningToStill() {
+    $(".gif").attr("src", $(".gif").attr("data-still"));
+    $(".gif").attr("data-state", "still");
+  }
+
+  $("#start").on("click", function(event) {
+    /* {{{ **
+    ** // Just record one utterance then stop
+    ** recognizer.recognizeOnceAsync(result => {
+    **   // Interact with result
+    **   $("#text-display").text(result.text);
+    ** });
+    ** }}} */
+    // First set up the events for recognition
+    // Function hooked up for recognized event with finalized answer
+    recognizer.recognized = function (s, e) {
+      if (e.result.reason !== SpeechSDK.ResultReason.NoMatch) {
+        // Have a recognized phrase, so
+        // Display it
+        $("#text-display").text(e.result.text);
+        // Store it to array
+        phrasesAsRecorded.push(e.result.text)
+      } else {
+      }
+    }
+    // Starts recognition
+    recognizer.startContinuousRecognitionAsync();
+    // Start the lightning animation as feedback
+    lightningToAnimated();
+
   });
 
   $("#stop").on("click", function(event) {
+    recognizer.stopContinuousRecognitionAsync(
+        function () {
+            recognizer.close();
+            recognizer = undefined;
+        },
+        function (err) {
+            recognizer.close();
+            recognizer = undefined;
+        });
     // Stop the lightning animation as feedback
-    $(".gif").attr("src", $(".gif").attr("data-still"));
-    $(".gif").attr("data-state", "still");
-    //
+    lightningToStill();
   });
-
-  function passToSpeechToTextAPI(data) {
-    // Need file reader object to perform Base64 encoding as a wrapper object
-    // to handle Base64 encoding for the API call.
-    var ToB64Reader = new FileReader();
-    ToB64Reader.onload = function() {
-      // Since the file reader object adds an extra Data URI as a header
-      // chop this information off with a regular expression search/replace
-      // and make the actual API call with that version
-      speech.audio.content = ToB64Reader.result;
-      console.log("speech.audio.content="+speech.audio.content); // Encoded data
-      // Use jQuery .param to build the Google Cloud speech to text query URL
-      var queryObj = {
-        key: GoogleCloudSpeechToTextAPIKey
-      };
-      var queryURL = "https://speech.googleapis.com/v1/speech:recognize?";
-      queryURL += $.param(queryObj);
-      console.log("queryURL="+queryURL);
-      var speechData = JSON.stringify(speech);
-      $.ajax({
-        url: queryURL,
-        method: "POST",
-        data: speechData,
-        dataType: "JSON"
-      }).then(function(response) {
-        $("#textReply").html(response.results.alternatives[0].transcript);
-      });
-    }
-    // Now need to call readDataAsURL() to trigger the load event, which
-    // will do all the actual work.
-    ToB64Reader.readAsDataURL(data);
-  }
 
 });
