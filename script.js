@@ -26,6 +26,9 @@ $(document).ready(function() {
 
   $("#start").on("click", function(event) {
     /* {{{ **
+    ** initializeSpeechSDK();
+    ** }}} */
+    /* {{{ **
     ** // Just record one utterance then stop
     ** recognizer.recognizeOnceAsync(result => {
     **   // Interact with result
@@ -56,19 +59,22 @@ $(document).ready(function() {
   $("#stop").on("click", function(event) {
     recognizer.stopContinuousRecognitionAsync(
         function () {
-            recognizer.close();
-            recognizer = undefined;
+          /* {{{ **
+          ** recognizer.close();
+          ** recognizer = undefined;
+          ** }}} */
         },
         function (err) {
-            recognizer.close();
-            recognizer = undefined;
+          /* {{{ **
+          ** recognizer.close();
+          ** recognizer = undefined;
+          ** }}} */
         });
     // Stop the lightning animation as feedback
     lightningToStill();
   });
 
   function passPhraseToMSTranslator(phraseIndex, lang) {
-    var callData = '';
     //URL PATTERN: {{{
     //https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=es
     //sample value }}}
@@ -78,34 +84,44 @@ $(document).ready(function() {
       to:'de'
     };
     var callObj = {
-      async: true,
-      crossDomain: true,
       url: '',
       method: 'POST',
       headers: {
         'Ocp-Apim-Subscription-Key': 'a9b0d0e3a840456a8257618e073be609',
-        'Ocp-Apim-Subscription-Region': 'global',
         'content-type': 'application/json',
-        'accept': 'application/json'
       },
       data: ''
     }
+    var escaped = '';
     // Assemble query url and call data
     if (lang) {
       queryObj.to = lang;
     }
     queryURL += $.param(queryObj);
-    console.log('∞° queryURL="'+queryURL,'"');
     // Set call url to constructed value
     callObj.url = queryURL;
     // Set data property to an object with property Text inside an array
-    callObj.data = "[{'Text':'"+phrasesAsRecorded[phraseIndex]+"'}]";
-    console.log('∞° callObj.data="'+callObj.data,'"');
-    callData = JSON.stringify(callObj);
-    console.log('∞° callData="'+callData,'"');
+    // Do regular expression search and replace for apostrophe
+    // replacing with back slash escaped apostrophe, not the 
+    // doubled back slash is needed in the regex pattern.
+    escaped = phrasesAsRecorded[phraseIndex].replace(/'/g,"\\'");
+    callObj.data = "[{'Text':'"+escaped+"'}]";
     // Make asynchronous API call
-    $.ajax(callData).then(function (response) {
-      console.log(response);
+    $.ajax(callObj).then(function (response) {
+      var retData = '';
+      retData = response[0].translations[0].text;
+      phrasesTranslated.push(retData);
+      //console.log('response=\n'+JSON.stringify(response));
+      // Display all the snippets starting each one on its own line
+      $("#text-display").text(phrasesTranslated.join("\n"));
+      //$("#translated-display").text(phrasesTranslated.join("\n"));
+    }).catch(function(e) {;
+      var err='';
+      console.log('in phrasesTranslated .catch() e=\n'+JSON.stringify(e));
+      err = 'Could not translate that.  Please try saying that again.';
+      phrasesTranslated.push(err);
+      $("#text-display").text(phrasesTranslated.join("\n"));
+      //$("#translated-display").text(phrasesTranslated.join("\n"));
     });
   }
 
