@@ -1,9 +1,15 @@
 const key1MSUnifiedSpeechAPI = "318dd88e400d4ac48bf3740a108a565d";
-//const key1MSUnifiedSpeechAPI = "54b1b031c6msh1d90d8db06bc946p115151jsn85d0cfde6b34";
+const regionCode = "westus";
 
-var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key1MSUnifiedSpeechAPI, "westus");
-var audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-var recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+//const key1MSUnifiedSpeechAPI = "54b1b031c6msh1d90d8db06bc946p115151jsn85d0cfde6b34";
+//const regionCode = "eastus";
+
+// Copy convention of having a global scope copy of of window.SpeechSDK
+var SpeechSDK;
+var speechConfig = undefined;
+var audioConfig = undefined;
+var recognizer = undefined;
+
 var phrasesAsRecorded = [];
 var phrasesTranslated = [];
 
@@ -59,4 +65,12 @@ $(document).ready(function() {
     lightningToStill();
   });
 
+  function initializeSpeechSDK() {
+    speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key1MSUnifiedSpeechAPI, regionCode);
+    audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+    recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+  }
+  // Copy convention of having a global scope copy of of window.SpeechSDK
+  SpeechSDK = window.SpeechSDK;
+  initializeSpeechSDK();
 });
