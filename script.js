@@ -1,4 +1,4 @@
-//const key1MSUnifiedSpeechAPI = "318dd88e400d4ac48bf3740a108a565d";
+//const key1MSUnifiedSpeechAPI = "318dd88e400d4ac48bf3740a108a565d"; // What key is this?
 const key1MSUnifiedSpeechAPI = "7934069aa33f4cf3845b1f5b9bdf76ad"; // SpeechRecognition20200709 key 2
 //const regionCode = "westus";
 const regionCode = "eastus";
