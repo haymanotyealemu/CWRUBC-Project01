@@ -1,6 +1,19 @@
-const key1MSUnifiedSpeechAPI = "318dd88e400d4ac48bf3740a108a565d";
+//const key1MSUnifiedSpeechAPI = "318dd88e400d4ac48bf3740a108a565d";
+const key1MSUnifiedSpeechAPI = "7934069aa33f4cf3845b1f5b9bdf76ad"; // SpeechRecognition20200709 key 2
+//const regionCode = "westus";
+const regionCode = "eastus";
 //const key1MSUnifiedSpeechAPI = "f8975d9751e540d18b9a49efb3c81ebe";
 //const key1MSUnifiedSpeechAPI = "54b1b031c6msh1d90d8db06bc946p115151jsn85d0cfde6b34";
+var authorizationToken = '';
+var curPhrase = '';
+var phrasesAsRecorded = [];
+var phrasesTranslated = [];
+
+// Copy convention of having a global scope copy of of window.SpeechSDK
+var SpeechSDK;
+var audioConfig;
+var speechConfig;
+var recognizer;
 
 var soundContext = undefined;
 try {
@@ -18,52 +31,6 @@ catch (e) {
   window.console.log("no sound context found, no audio output. " + e);
 }
 
-//var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key1MSUnifiedSpeechAPI, "westus");
-//var speechConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(key1MSUnifiedSpeechAPI, "westus");
-var speechConfig;
-//
-// in case we have a function for getting an authorization token, call it.
-var authorizationToken = '';
-console.log('∞° authorizationToken="'+authorizationToken,'"');
-/* {{{ **
-** if (typeof RequestAuthorizationToken === "function") {
-**     RequestAuthorizationToken();
-** }
-** }}} */
-if (authorizationToken) {
-  speechConfig = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(authorizationToken, "westus");
-} else {
-  console.log('∞° B speechConfig....');
-  speechConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(key1MSUnifiedSpeechAPI, "westus");
-  console.log('∞° A speechConfig....');
-}
-// Source language
-var SourceLang = 'EN';
-speechConfig.speechRecognitionLanguage = SourceLang;
-// Target translated language
-var TargetLang = 'DE'
-speechConfig.addTargetLanguage(TargetLang);
-/* {{{ **
-** var audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-** }}} */
-var audioConfig;
-/* {{{ **
-** if (undefined != microphoneSource.value) {
-**   console.info("Getting Microphone " + microphoneSource.value);
-**   audioConfig = SpeechSDK.AudioConfig.fromMicrophoneInput(microphoneSource.value);
-** } else {
-**   audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-** }
-** }}} */
-audioConfig = SpeechSDK.AudioConfig.fromMicrophoneInput("undefined");
-//var recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-console.log('∞° B recognizer....');
-var recognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
-console.log('∞° A recognizer....');
-var curPhrase = '';
-var phrasesAsRecorded = [];
-var phrasesTranslated = [];
-
 $(document).ready(function() {
   function lightningToAnimated() {
     $(".gif").attr("src", $(".gif").attr("data-animate"));
@@ -76,6 +43,46 @@ $(document).ready(function() {
   }
 
   $("#start").on("click", function(event) {
+    //var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key1MSUnifiedSpeechAPI, regionCode);
+    //var speechConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(key1MSUnifiedSpeechAPI, regionCode);
+    //
+    // in case we have a function for getting an authorization token, call it.
+    /* {{{ **
+    ** if (typeof RequestAuthorizationToken === "function") {
+    **     RequestAuthorizationToken();
+    ** }
+    ** }}} */
+    if (authorizationToken) {
+      speechConfig = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(authorizationToken, regionCode);
+    } else {
+      speechConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(key1MSUnifiedSpeechAPI, regionCode);
+    }
+
+    // Source language
+    var SourceLang = 'en-EN';
+    speechConfig.speechRecognitionLanguage = SourceLang;
+    // Target translated language
+    var TargetLang = 'de-DE'
+    speechConfig.addTargetLanguage(TargetLang);
+
+    /* {{{ **
+    ** var audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+    ** }}} */
+    /* {{{ **
+    ** if (undefined != microphoneSource.value) {
+    **   console.info("Getting Microphone " + microphoneSource.value);
+    **   audioConfig = SpeechSDK.AudioConfig.fromMicrophoneInput(microphoneSource.value);
+    ** } else {
+    **   audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+    ** }
+    ** }}} */
+    audioConfig = SpeechSDK.AudioConfig.fromMicrophoneInput("undefined");
+    console.log('∞° audioConfig="'+JSON.stringify(audioConfig),'"');
+    console.log('∞° speechConfig="'+JSON.stringify(speechConfig),'"');
+
+    //recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+    recognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
+
     /* {{{ **
     ** // Just record one utterance then stop
     ** recognizer.recognizeOnceAsync(result => {
@@ -131,4 +138,18 @@ $(document).ready(function() {
     lightningToStill();
   });
 
+  /* {{{ **
+  ** function Initialize(onComplete) {
+  **   if (!!window.SpeechSDK) {
+  **     onComplete(window.SpeechSDK);
+  **   }
+  ** }
+  ** 
+  ** Initialize(function (speechSdk) {
+  **     SpeechSDK = speechSdk;
+  ** });
+  ** }}} */
+
+  // Copy convention of having a global scope copy of of window.SpeechSDK
+  SpeechSDK = window.SpeechSDK;
 });
