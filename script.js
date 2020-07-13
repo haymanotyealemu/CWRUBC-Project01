@@ -43,7 +43,7 @@ $(document).ready(function() {
         // Store it to array
         phrasesAsRecorded.push(e.result.text)
         // Display all the snippets starting each one on its own line
-        $("#text-display").text(phrasesAsRecorded.join("\n"));
+        $("#recognized").text(phrasesAsRecorded.join("\n"));
         // Pass to callback for translation
         passPhraseToMSTranslator(phrasesAsRecorded.length-1,'de');
       } else {
@@ -113,15 +113,15 @@ $(document).ready(function() {
       phrasesTranslated.push(retData);
       //console.log('response=\n'+JSON.stringify(response));
       // Display all the snippets starting each one on its own line
-      $("#text-display").text(phrasesTranslated.join("\n"));
-      //$("#translated-display").text(phrasesTranslated.join("\n"));
+      //$("#text-display").text(phrasesTranslated.join("\n"));
+      $("#translated").text(phrasesTranslated.join("\n"));
     }).catch(function(e) {;
       var err='';
       console.log('in phrasesTranslated .catch() e=\n'+JSON.stringify(e));
       err = 'Could not translate that.  Please try saying that again.';
       phrasesTranslated.push(err);
-      $("#text-display").text(phrasesTranslated.join("\n"));
-      //$("#translated-display").text(phrasesTranslated.join("\n"));
+      //$("#text-display").text(phrasesTranslated.join("\n"));
+      $("#translated").text(phrasesTranslated.join("\n"));
     });
   }
 

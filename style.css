@@ -1,11 +1,28 @@
-body {
-  color: red;
-}
+/*      */
 
-h1 {
-  color: #00FF00;
-}
-
-p.ex {
-  color: rgb(0,0,255);
-} 
+html {
+    background-color: #ebfffc!important;
+    }
+    .recording-time{
+        float:left;
+        margin-left: 20px;
+    }
+    
+    h2 {
+        font-family:'Poppins', sans-serif;
+        color: white;
+        text-decoration: underline;
+        padding-top: 40px;
+    }
+    .navbar-burger {
+    height: auto;
+    }  
+    .has-text-centered {
+        padding-bottom: 0px;
+    }     
+    .image {
+        padding: 20px;
+    }
+    .footer {
+        padding: 0px;
+    }
