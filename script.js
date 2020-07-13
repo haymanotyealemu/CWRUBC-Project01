@@ -9,6 +9,7 @@ var SpeechSDK;
 var speechConfig = undefined;
 var audioConfig = undefined;
 var recognizer = undefined;
+var RecDuration = 0;
 
 var phrasesAsRecorded = [];
 var phrasesTranslated = [];
@@ -38,6 +39,7 @@ $(document).ready(function() {
     // First set up the events for recognition
     // Function hooked up for recognized event with finalized answer
     recognizer.recognized = function (s, e) {
+      var min, sec, time;
       if (e.result.reason !== SpeechSDK.ResultReason.NoMatch) {
         // Have a recognized phrase, so
         // Store it to array
@@ -46,6 +48,16 @@ $(document).ready(function() {
         $("#recognized").text(phrasesAsRecorded.join("\n"));
         // Pass to callback for translation
         passPhraseToMSTranslator(phrasesAsRecorded.length-1,'de');
+        // Time duration display
+        // Note: only break time into minutes and seconds not hours or bigger
+        RecDuration += parseInt(e.result.duration) / 10000000;
+        min = Math.floor(RecDuration / 60);
+        // Get seconds including fractional remaining
+        sec = (RecDuration - 60 * min);
+        // Pad seconds to two digits with 0 as needed
+        time = min+':'+((sec < 10.0) ? '0' : '')+sec.toFixed(2);
+        //$("#time-span").text('Total Record Time is:  '+RecDuration+' seconds')
+        $("#time-span").text('Total Record Time is: '+time)
       } else {
       }
     }
@@ -53,7 +65,6 @@ $(document).ready(function() {
     recognizer.startContinuousRecognitionAsync();
     // Start the lightning animation as feedback
     lightningToAnimated();
-
   });
 
   $("#stop").on("click", function(event) {
