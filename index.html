@@ -69,7 +69,6 @@
         <!--Center buttons-->
         <div class="has-text-centered">            
           <button class="button btnStart is-success is-rounded" id="start"><span class="icon"><i class="fas fa-play-circle"></i></span><span>Start</span></button>
-          <button class="button is-danger is-rounded" id="pause"><span class="icon"><i class="far fa-pause-circle"></i></span><span>Pause</span></button>
           <button class="button is-rounded" id="stop"><span class="icon"><i class="fas fa-stop-circle"></i></span><span>End</span></button>          
         </div>
         <div class="field">
@@ -90,22 +89,6 @@
 </footer>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
-  <script type="text/javascript">
-        $(".gif").on("click", function() {
-          // The attr jQuery method allows us to get or set the value of any attribute on our HTML element
-        var state = $(this).attr("data-state");
-          // If the clicked image's state is still, update its src attribute to what its data-animate value is.
-          // Then, set the image's data-state to animate
-          // Else set src to the data-still value
-        if (state === "still") {
-            $(this).attr("src", $(this).attr("data-animate"));
-            $(this).attr("data-state", "animate");
-        } else {
-            $(this).attr("src", $(this).attr("data-still"));
-            $(this).attr("data-state", "still");
-        }
-        });
-  </script>
   <!-- <speechsdkref>  {{{ -->
   <!-- Speech SDK reference sdk. -->
   <script src="microsoft.cognitiveservices.speech.sdk.bundle.js"></script>

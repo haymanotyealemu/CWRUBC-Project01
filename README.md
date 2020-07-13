@@ -1,11 +1,11 @@
 # CWRUBC-Project01
-Interpre-Friend - User speech is recorded, transcribed, and translated
+Speech-Text - User speech is recorded, transcribed, and translated
 
 Link:
 https://johannsp.github.io/CWRUBC-Project01/
 
 Preview:
-
+[![Speech-Text-Web-Page-Preview.png](https://i.postimg.cc/76J8YyMB/Speech-Text-Web-Page-Preview.png)](https://postimg.cc/0MvHcF4m)
 
 Use
 
