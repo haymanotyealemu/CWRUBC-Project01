@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interpre-Friend</title>
+  <!--Bulma Link-->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css">
+  <!-- Font Awesome CSS Icons (For cool glyphicons) -->
+  <link rel="stylesheet"  href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+  integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf"
+  crossorigin="anonymous"
+  />
+  <style>
+      .recording-time{
+          float:right;
+      }
+      .center{
+          display: flex;
+          justify-content: center;
+          align-items: center;
+      }
+  </style>
+</head>
+<body>
+
+  <section class="hero has-background-primary-dark ">
+    <div class="hero-body">
+      <div class="container ">
+        <h1 class="title has-text-centered is-size-2 is-family-sans-serif has-text-weight-bold "><strong>Interpre-Friend</strong></h1>
+      </div>
+    </div>
+  </section>
+
+  <section class="section has-background-primary-light">
+    <div class="container px-5 py-4 mb-3">
+        <p class="title pl-3 is-size-3">Instruction:<span class="is-size-5 recording-time">Total Record Time is:<span id="time-span"></span></span></p>
+        <div class="content is-size-5 has-text-weight-medium">
+            Press the Start Button to begin recording. You will have XX seconds to record and Press the Stop Button to end the recording.
+        </div>
+        <p class="buttons">
+          <button class="button is-success is-rounded" id="start"><span class="icon"><i class="fas fa-play-circle"></i></span><span>Start</span></button>
+          <button class="button is-danger is-rounded" id="pause"><span class="icon"><i class="far fa-pause-circle"></i></span><span>Pause</span></button>
+          <button class="button is-rounded" id="stop"><span class="icon"><i class="fas fa-stop-circle"></i></span><span>Stop</span></button>
+        </p>
+        <figure class="image center is-128x128 ">
+          <img src="https://media2.giphy.com/media/dnoyd6rMvw29q/giphy_s.gif" data-still="https://media2.giphy.com/media/dnoyd6rMvw29q/giphy_s.gif" data-animate="https://media2.giphy.com/media/dnoyd6rMvw29q/giphy.gif" data-state="still" class="gif" alt="">
+        </figure>
+        <div class="field">
+          <div class="control">
+            <textarea class="textarea" id="text-display"placeholder="Text Display Here" style="overflow-y:scroll;height:100px;"></textarea>
+          </div>
+        </div> 
+    </div>
+  </section>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+  <script type="text/javascript">
+      $(".gif").on("click", function() {
+        // The attr jQuery method allows us to get or set the value of any attribute on our HTML element
+      var state = $(this).attr("data-state");
+        // If the clicked image's state is still, update its src attribute to what its data-animate value is.
+        // Then, set the image's data-state to animate
+        // Else set src to the data-still value
+      if (state === "still") {
+          $(this).attr("src", $(this).attr("data-animate"));
+          $(this).attr("data-state", "animate");
+      } else {
+          $(this).attr("src", $(this).attr("data-still"));
+          $(this).attr("data-state", "still");
+      }
+      });
+  </script>
+  <!-- <speechsdkref>  {{{ -->
+  <!-- Speech SDK reference sdk. -->
+  <script src="microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
+  <!-- </speechsdkref> }}} -->
+  <script src="script.js""></script>
+</body>
+</html>
